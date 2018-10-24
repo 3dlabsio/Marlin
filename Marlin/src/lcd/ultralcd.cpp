@@ -341,7 +341,7 @@ millis_t next_lcd_update_ms;
 
   // Used to print static text with no visible cursor.
   // Parameters: label [, bool center [, bool invert [, char *value] ] ]
-  #define STATIC_ITEM_P(LABEL, ...) \
+  #define STATIC_ITEM_P(LABEL, ...) do{ \
     if (_menuLineNr == _thisItemNr) { \
       if (_skipStatic && encoderLine <= _thisItemNr) { \
         encoderPosition += ENCODER_STEPS_PER_MENU_ITEM; \
@@ -350,7 +350,7 @@ millis_t next_lcd_update_ms;
       if (lcdDrawUpdate) \
         lcd_implementation_drawmenu_static(_lcdLineNr, LABEL, ## __VA_ARGS__); \
     } \
-    ++_thisItemNr
+    ++_thisItemNr; } while(0)
 
   #define STATIC_ITEM(LABEL, ...) STATIC_ITEM_P(PSTR(LABEL), ## __VA_ARGS__)
 
@@ -2226,9 +2226,9 @@ void lcd_quick_feedback(const bool clear_buttons) {
     void _lcd_ubl_custom_mesh() {
       START_MENU();
       MENU_BACK(MSG_UBL_BUILD_MESH_MENU);
-      MENU_ITEM_EDIT(int3, MSG_UBL_CUSTOM_HOTEND_TEMP, &custom_hotend_temp, EXTRUDE_MINTEMP, (HEATER_0_MAXTEMP - 10));
+      MENU_ITEM_EDIT(int3, MSG_UBL_HOTEND_TEMP_CUSTOM, &custom_hotend_temp, EXTRUDE_MINTEMP, (HEATER_0_MAXTEMP - 10));
       #if HAS_HEATED_BED
-        MENU_ITEM_EDIT(int3, MSG_UBL_CUSTOM_BED_TEMP, &custom_bed_temp, BED_MINTEMP, (BED_MAXTEMP - 15));
+        MENU_ITEM_EDIT(int3, MSG_UBL_BED_TEMP_CUSTOM, &custom_bed_temp, BED_MINTEMP, (BED_MAXTEMP - 15));
       #endif
       MENU_ITEM(function, MSG_UBL_BUILD_CUSTOM_MESH, _lcd_ubl_build_custom_mesh);
       END_MENU();
@@ -2301,8 +2301,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
      * UBL Validate Mesh submenu
      *
      * << UBL Tools
-     *    PLA Mesh Validation
-     *    ABS Mesh Validation
+     *    Mesh Validation with Material 1
+     *    Mesh Validation with Material 2
      *    Validate Custom Mesh
      * << Info Screen
      */
@@ -2310,11 +2310,11 @@ void lcd_quick_feedback(const bool clear_buttons) {
       START_MENU();
       MENU_BACK(MSG_UBL_TOOLS);
       #if HAS_HEATED_BED
-        MENU_ITEM(gcode, MSG_UBL_VALIDATE_PLA_MESH, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_1_TEMP_BED) " H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
-        MENU_ITEM(gcode, MSG_UBL_VALIDATE_ABS_MESH, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_2_TEMP_BED) " H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
+        MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M1, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_1_TEMP_BED) " H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
+        MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M2, PSTR("G28\nG26 C B" STRINGIFY(PREHEAT_2_TEMP_BED) " H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
       #else
-        MENU_ITEM(gcode, MSG_UBL_VALIDATE_PLA_MESH, PSTR("G28\nG26 C B0 H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
-        MENU_ITEM(gcode, MSG_UBL_VALIDATE_ABS_MESH, PSTR("G28\nG26 C B0 H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
+        MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M1, PSTR("G28\nG26 C B0 H" STRINGIFY(PREHEAT_1_TEMP_HOTEND) " P"));
+        MENU_ITEM(gcode, MSG_UBL_VALIDATE_MESH_M2, PSTR("G28\nG26 C B0 H" STRINGIFY(PREHEAT_2_TEMP_HOTEND) " P"));
       #endif
       MENU_ITEM(function, MSG_UBL_VALIDATE_CUSTOM_MESH, _lcd_ubl_validate_custom_mesh);
       MENU_ITEM(function, MSG_WATCH, lcd_return_to_status);
@@ -2400,8 +2400,8 @@ void lcd_quick_feedback(const bool clear_buttons) {
      * UBL Build Mesh submenu
      *
      * << UBL Tools
-     *    Build PLA Mesh
-     *    Build ABS Mesh
+     *    Build Mesh with Material 1
+     *    Build Mesh with Material 2
      *  - Build Custom Mesh >>
      *    Build Cold Mesh
      *  - Fill-in Mesh >>
@@ -2414,7 +2414,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       START_MENU();
       MENU_BACK(MSG_UBL_TOOLS);
       #if HAS_HEATED_BED
-        MENU_ITEM(gcode, MSG_UBL_BUILD_PLA_MESH, PSTR(
+        MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M1, PSTR(
           "G28\n"
           "M190 S" STRINGIFY(PREHEAT_1_TEMP_BED) "\n"
           "M109 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND) "\n"
@@ -2422,7 +2422,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
           "M104 S0\n"
           "M140 S0"
         ));
-        MENU_ITEM(gcode, MSG_UBL_BUILD_ABS_MESH, PSTR(
+        MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M2, PSTR(
           "G28\n"
           "M190 S" STRINGIFY(PREHEAT_2_TEMP_BED) "\n"
           "M109 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND) "\n"
@@ -2431,13 +2431,13 @@ void lcd_quick_feedback(const bool clear_buttons) {
           "M140 S0"
         ));
       #else
-        MENU_ITEM(gcode, MSG_UBL_BUILD_PLA_MESH, PSTR(
+        MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M1, PSTR(
           "G28\n"
           "M109 S" STRINGIFY(PREHEAT_1_TEMP_HOTEND) "\n"
           "G29 P1\n"
           "M104 S0"
         ));
-        MENU_ITEM(gcode, MSG_UBL_BUILD_ABS_MESH, PSTR(
+        MENU_ITEM(gcode, MSG_UBL_BUILD_MESH_M2, PSTR(
           "G28\n"
           "M109 S" STRINGIFY(PREHEAT_2_TEMP_HOTEND) "\n"
           "G29 P1\n"
@@ -3206,7 +3206,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
   void lcd_move_menu_1mm()  { _goto_manual_move( 1); }
   void lcd_move_menu_01mm() { _goto_manual_move( 0.1f); }
 
-  void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func) {
+  void _lcd_move_distance_menu(const AxisEnum axis, const screenFunc_t func, const int8_t eindex=-1) {
     _manual_move_func_ptr = func;
     START_MENU();
     if (LCD_HEIGHT >= 4) {
@@ -3225,27 +3225,34 @@ void lcd_quick_feedback(const bool clear_buttons) {
           break;
       }
     }
-    MENU_BACK(MSG_MOVE_AXIS);
-    MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
-    MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
-    MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
+    #if ENABLED(PREVENT_COLD_EXTRUSION)
+      if (thermalManager.tooColdToExtrude(eindex >= 0 ? eindex : active_extruder))
+        MENU_BACK(MSG_HOTEND_TOO_COLD);
+      else
+    #endif
+    {
+      MENU_BACK(MSG_MOVE_AXIS);
+      MENU_ITEM(submenu, MSG_MOVE_10MM, lcd_move_menu_10mm);
+      MENU_ITEM(submenu, MSG_MOVE_1MM, lcd_move_menu_1mm);
+      MENU_ITEM(submenu, MSG_MOVE_01MM, lcd_move_menu_01mm);
+    }
     END_MENU();
   }
   void lcd_move_get_x_amount()        { _lcd_move_distance_menu(X_AXIS, lcd_move_x); }
   void lcd_move_get_y_amount()        { _lcd_move_distance_menu(Y_AXIS, lcd_move_y); }
   void lcd_move_get_z_amount()        { _lcd_move_distance_menu(Z_AXIS, lcd_move_z); }
-  void lcd_move_get_e_amount()        { _lcd_move_distance_menu(E_AXIS, lcd_move_e); }
+  void lcd_move_get_e_amount()        { _lcd_move_distance_menu(E_AXIS, lcd_move_e, -1); }
   #if E_MANUAL > 1
-    void lcd_move_get_e0_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e0); }
-    void lcd_move_get_e1_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e1); }
+    void lcd_move_get_e0_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e0, 0); }
+    void lcd_move_get_e1_amount()     { _lcd_move_distance_menu(E_AXIS, lcd_move_e1, 1); }
     #if E_MANUAL > 2
-      void lcd_move_get_e2_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e2); }
+      void lcd_move_get_e2_amount()   { _lcd_move_distance_menu(E_AXIS, lcd_move_e2, 2); }
       #if E_MANUAL > 3
-        void lcd_move_get_e3_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e3); }
+        void lcd_move_get_e3_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e3, 3); }
         #if E_MANUAL > 4
-          void lcd_move_get_e4_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e4); }
+          void lcd_move_get_e4_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e4, 4); }
           #if E_MANUAL > 5
-            void lcd_move_get_e5_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e5); }
+            void lcd_move_get_e5_amount() { _lcd_move_distance_menu(E_AXIS, lcd_move_e5, 5); }
           #endif // E_MANUAL > 5
         #endif // E_MANUAL > 4
       #endif // E_MANUAL > 3
@@ -4032,7 +4039,7 @@ void lcd_quick_feedback(const bool clear_buttons) {
       // M205 - Max Jerk
       MENU_ITEM(submenu, MSG_JERK, lcd_advanced_jerk_menu);
 
-      if (!printer_busy) {
+      if (!printer_busy()) {
         // M92 - Steps Per mm
         MENU_ITEM(submenu, MSG_STEPS_PER_MM, lcd_advanced_steps_per_mm_menu);
       }
