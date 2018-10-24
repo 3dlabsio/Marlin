@@ -150,6 +150,8 @@
   #include "pins_RAMPS_ENDER_4.h"     // ATmega2560                                 env:megaatmega2560
 #elif MB(FYSETC_F6_13)
   #include "pins_FYSETC_F6_13.h"      // ATmega2560                                 env:megaatmega2560
+#elif MB(CREATBOT_D600_PRO)
+  #include "pins_CREATBOT_D600_PRO.h"       // ATmega2560                                 env:megaatmega2560
 
 //
 // Other ATmega1280, ATmega2560
@@ -397,8 +399,6 @@
   #include "pins_BEAST.h"             // STM32F4                                    env:STM32F4
 #elif MB(STM32F4)
   #include "pins_STM32F4.h"           // STM32F4                                    env:STM32F4
-#elif MB(ARMED)
-  #include "pins_ARMED.h"             // STM32F4                                    env:ARMED
 
 //
 // ARM Cortex M7
