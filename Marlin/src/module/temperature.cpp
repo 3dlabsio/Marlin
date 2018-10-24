@@ -72,8 +72,6 @@ Temperature thermalManager;
  * elimination should (hopefully) optimize out the unused strings.
  */
 
-// TODO: factor in the heater chamber into this table
-
 #if HAS_HEATED_BED
   #define TEMP_ERR_PSTR(MSG, E) \
     (E) == -1 ? PSTR(MSG ## _BED) : \
@@ -968,8 +966,6 @@ void Temperature::manage_heater() {
         }
       #endif // WATCH_THE_CHAMBER
 
-
-      // TODO: use bang-bang for now, until we add true pwm w/pid
       if (PENDING(ms, next_chamber_check_ms)) return;
       next_chamber_check_ms = ms + CHAMBER_CHECK_INTERVAL;
       
@@ -1604,22 +1600,21 @@ void Temperature::init() {
 
     static float tr_target_temperature[HOTENDS + 1] = { 0.0 };
 
-        
+    /**
         SERIAL_ECHO_START();
         SERIAL_ECHOPGM("Thermal Thermal Runaway Running. Heater ID: ");
-        if(heater_id == -2) SERIAL_ECHOPGM("chamber");
-        else if (heater_id < 0) SERIAL_ECHOPGM("bed"); else SERIAL_ECHO(heater_id);
+        if (heater_id < 0) SERIAL_ECHOPGM("bed"); else SERIAL_ECHO(heater_id);
         SERIAL_ECHOPAIR(" ;  State:", *state);
         SERIAL_ECHOPAIR(" ;  Timer:", *timer);
         SERIAL_ECHOPAIR(" ;  Temperature:", current);
         SERIAL_ECHOPAIR(" ;  Target Temp:", target);
         if (heater_id >= 0)
-          SERIAL_ECHOPAIR(" ;  Idle Timeout:", "blah");
+          SERIAL_ECHOPAIR(" ;  Idle Timeout:", heater_idle_timeout_exceeded[heater_id]);
         else
-          SERIAL_ECHOPAIR(" ;  Idle Timeout:", "blah");
+          SERIAL_ECHOPAIR(" ;  Idle Timeout:", bed_idle_timeout_exceeded);
         SERIAL_EOL();
+    */
         
-
     const int heater_index = heater_id >= 0 ? heater_id : HOTENDS;
 
     #if HEATER_IDLE_HANDLER
