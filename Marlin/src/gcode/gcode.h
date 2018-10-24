@@ -564,6 +564,11 @@ private:
     static void M190();
   #endif
 
+  #if ENABLED(HAS_HEATED_CHAMBER)
+    static void M141();
+    static void M191();
+  #endif
+
   #if ENABLED(ULTIPANEL)
     static void M145();
   #endif
