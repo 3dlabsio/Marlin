@@ -37,6 +37,12 @@
 #define SERVO0_PIN         5
 
 //
+// Filament runout detection
+//
+#define FIL_RUNOUT_PIN		36
+#define FIL_RUNOUT2_PIN		34
+
+//
 // Limit Switches
 //
 #define X_MIN_PIN          37
